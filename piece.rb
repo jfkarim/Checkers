@@ -1,5 +1,5 @@
 class Piece
-  attr_accessor :color, :position, :move_increments, :jump_increments
+  attr_accessor :color, :position, :slide_increments, :jump_increments
 
 
   def initialize(color, position)
@@ -10,10 +10,10 @@ class Piece
 
   def set_move_increments
     if color == 'black'
-      self.move_increments = [[-1,-1], [-1,1]]
+      self.slide_increments = [[-1,-1], [-1,1]]
       self.jump_increments = [[-2,-2], [-2,2]]
     else
-      self.move_increments = [[1,-1], [1,1]]
+      self.slide_increments = [[1,-1], [1,1]]
       self.jump_increments = [[2,-2], [2,2]]
     end
   end
@@ -22,14 +22,23 @@ class Piece
     self.position = new_pos
   end
 
-  def possible_moves
+  def slide_moves
+    possible_moves(slide_increments)
+  end
+
+  def jump_moves
+    possible_moves(jump_increments)
+  end
+
+  def possible_moves(increments)
+
     possible_moves = []
 
-    move_increments.each do |increment|
+    increments.each do |increment|
       row = position[0] + increment[0]
       col = position[1] + increment[1]
-      possible_move = [row, col]
-      possible_moves << possible_move if within_board?(possible_move)
+      possible_moves = [row, col]
+      possible_moves << possible_moves if within_board?(possible_moves)
     end
 
     possible_moves
