@@ -25,7 +25,7 @@ class Player
   end
 
   def get_inputs
-    puts "Please type in your move as such: a1 b2"
+    puts "#{name}. Please type in your move as such: a1 b2"
     move = []
     inputs = (gets.chomp.upcase).split(' ')
 
@@ -40,12 +40,12 @@ class Player
 
 end
 
-test = Player.new('black')
-puts "color:"
-p test.color
-puts "testing get_name"
-p test.name
-puts "testing grid_hash"
-p test.grid_hash
-puts "testing get_inputs"
-p test.get_inputs
+# test = Player.new('black')
+# puts "color:"
+# p test.color
+# puts "testing get_name"
+# p test.name
+# puts "testing grid_hash"
+# p test.grid_hash
+# puts "testing get_inputs"
+# p test.get_inputs

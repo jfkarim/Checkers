@@ -1,7 +1,8 @@
-
+require 'debugger'
 require_relative 'board'
 require_relative 'piece'
 require_relative 'tile'
+require_relative 'player'
 
 class Checkers
 
@@ -9,23 +10,37 @@ class Checkers
 
   def initialize
     self.game_board = Board.new
-    # self.player1 = nil
-    # self.player2 = nil
-    # set_players
-    # @current_player = nil
+    self.player1 = nil
+    self.player2 = nil
+    @current_player = nil
+    set_players
   end
+
+  def set_players
+    self.player1 = Player.new('black')
+    self.player2 = Player.new('red')
+    @current_player = player1
+  end
+
+  def change_players
+    @current_player == player1 ? @current_player = player2 : @current_player = player1
+  end
+
+  def turn
+    move(@current_player.get_inputs)
+    game_board.display_board
+    change_players
+  end
+
+  def play
+    game_board.display_board
+    10.times {turn}
+  end
+
 
   def board_dup
     serialized_board = Marshal::dump(game_board)
     Marshal::load(serialized_board)
-  end
-
-  def perform_slide(origin, destination)
-    current_piece = game_board[origin[0], origin[1]].piece.dup
-
-    if valid_moves(current_piece).include?(destination)
-      perform_move(origin, destination)
-    end
   end
 
   def move(inputs)
@@ -42,7 +57,7 @@ class Checkers
     end
   end
 
-  def perform_jump(origin, destination)
+  def perform_slide(origin, destination)
     current_piece = game_board[origin[0], origin[1]].piece.dup
 
     if valid_moves(current_piece).include?(destination)
@@ -50,10 +65,28 @@ class Checkers
     end
   end
 
+  def perform_jump(origin, destination)
+    current_piece = game_board[origin[0], origin[1]].piece.dup
+    surroundings = surroundings(current_piece.position)
+    jump_array = jumps_possible(surroundings, current_piece.position)
+
+    if valid_moves(current_piece).include?(destination)
+      perform_move(origin, destination)
+      remove_jumped(origin, destination)
+    end
+  end
+
+  def remove_jumped(origin, destination)
+    difference = [destination[0] - origin[0], destination[1] - origin[1]]
+    jumped = [origin[0] + (difference[0] / 2), origin[1] + (difference[1] / 2)]
+    game_board[jumped[0], jumped[1]].piece = nil
+  end
+
   def perform_move(origin, destination)
     temp = game_board[origin[0], origin[1]].piece.dup
     game_board[destination[0], destination[1]].piece = temp
     game_board[origin[0], origin[1]].piece = nil
+    game_board[destination[0], destination[1]].piece.set_new_pos(destination)
   end
 
   def valid_moves(piece)
@@ -93,8 +126,8 @@ class Checkers
 
     surroundings.each do |neighbor|
       difference = [neighbor[0] - current_position[0], neighbor[1] - current_position[1]]
-      jump_tile = [neighbor[0] + difference[0], neighbor[0] + difference[0]]
-      if game_board[jump_tile[0], jump_tile[1]].no_piece?
+      jump_tile = [neighbor[0] + difference[0], neighbor[1] + difference[1]]
+      if game_board[jump_tile[0], jump_tile[1]] && game_board[jump_tile[0], jump_tile[1]].no_piece?
         if game_board[neighbor[0], neighbor[1]].piece.color != game_board[current_position[0], current_position[1]].piece.color
           if !game_board[neighbor[0], neighbor[1]].no_piece?
             jump_array << jump_tile
@@ -119,24 +152,8 @@ class Checkers
     surroundings
   end
 
-  def set_players
-    self.player1 = Player.new('red')
-    self.player2 = Player.new('black')
-  end
-
-  def change_players
-    @current_player == player1 ? @current_player = player2 : @current_player = player1
-  end
 
 end
 
 test = Checkers.new
-test.game_board.display_board
-puts "After move made"
-test.move([[2,1], [3,2]])
-test.game_board.display_board
-
-# temp_board = board_dup
-# temp = temp_board[origin[0], origin[1]].piece.dup
-# temp_board[destination[0], destination[1]].piece = temp
-# temp_board[origin[0], origin[1]].piece = nil
+test.play
