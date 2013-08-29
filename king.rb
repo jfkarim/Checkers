@@ -5,6 +5,7 @@ class King < Piece
   def initialize(color, position, type = :king)
     self.color = color
     self.position = position
+    self.type = type
     set_move_increments
   end
 

@@ -28,7 +28,12 @@ class Checkers
   end
 
   def turn
-    move(@current_player.get_inputs)
+    move_input = @current_player.get_inputs
+    if !valid_piece?(@current_player.color, game_board[move_input[0][0], move_input[0][1]].piece)
+      puts "\u26d4 \n Wrong pieces IDIOT!! kidding, you're not an idiot...\n at least not a big one\n \u26d4"
+      turn
+    end
+    kind_of_move(move_input)
     game_board.display_board
     change_players
   end
@@ -38,14 +43,43 @@ class Checkers
     20.times {turn}
   end
 
+  def win?
+
+  end
+
+  def origin_empty?(origin)
+    game_board[origin[0], origin[1]].no_piece?
+  end
 
   def board_dup
     serialized_board = Marshal::dump(game_board)
     Marshal::load(serialized_board)
   end
 
+  def valid_piece?(current_player_color, selected_piece)
+    selected_piece && (selected_piece.color == current_player_color)
+  end
+
+  def kind_of_move(inputs)
+    move(inputs) if inputs.length == 2
+    move_sequence(inputs) if inputs.length > 2
+  end
+
+  def move_sequence(inputs)
+    move_count = inputs.length
+    i = 0
+    while i < move_count - 1
+      move([inputs[i], inputs[i+1]])
+      i += 1
+    end
+  end
+
   def move(inputs)
     origin, destination = inputs[0], inputs[1]
+
+    if origin_empty?(origin)
+      puts "You selected an invalid square to move from"
+    end
 
     difference = [destination[0] - origin[0], destination[1] - origin[1]]
 
@@ -129,8 +163,8 @@ class Checkers
     surroundings.each do |neighbor|
       difference = [neighbor[0] - current_position[0], neighbor[1] - current_position[1]]
       jump_pos = [neighbor[0] + difference[0], neighbor[1] + difference[1]]
-      jump_tile = game_board[jump_pos[0], jump_pos[1]]
       next if !within_board?(jump_pos)
+      jump_tile = game_board[jump_pos[0], jump_pos[1]]
       if game_board[jump_pos[0], jump_pos[1]] && game_board[jump_pos[0], jump_pos[1]].no_piece?
         if game_board[neighbor[0], neighbor[1]].piece.color != game_board[current_position[0], current_position[1]].piece.color
           if !game_board[neighbor[0], neighbor[1]].no_piece?
@@ -163,18 +197,20 @@ class Checkers
     red_line, black_line = back_line(0), back_line(7)
     if color == :black
       if red_line.include?(current_position)
-        game_board[current_position[0], current_position[1]] = King.new(color, current_position)
+        game_board[current_position[0], current_position[1]].piece = King.new(color, current_position)
       end
     else
       if black_line.include?(piece)
-        game_board[current_position[0], current_position[1]] = King.new(color, current_position)
+        game_board[current_position[0], current_position[1]].piece = King.new(color, current_position)
       end
     end
   end
 
   def back_line(desired)
     line = []
-    game_board.board.each { |row| row.each { |tile| line << tile.piece.position if tile.piece && tile.piece.position[0] == desired } }
+    game_board.board.each_with_index do |row, i1|
+      row.each_with_index { |tile, i2| line << [i1,i2] if tile && i1 == desired }
+    end
     line
   end
 
