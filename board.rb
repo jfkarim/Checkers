@@ -17,10 +17,15 @@ class Board
     8.times { board << Array.new(8) {Tile.new} }
     self.red_piece_count = []
     self.black_piece_count = []
+    populate_board
   end
 
   def [](row, col)
     board[row][col]
+  end
+
+  def populate_board
+
   end
 
 
