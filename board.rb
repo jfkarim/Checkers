@@ -5,11 +5,11 @@ class Board
 
   attr_accessor :board, :red_piece_count, :black_piece_count
 
-  INITIALS = { :red => [[0,1], [0,3], [0,5], [0,7],
+  INITIALS = { red: [[0,1], [0,3], [0,5], [0,7],
                       [1,0], [1,2], [1,4], [1,6],
                       [2,1], [2,3], [2,5], [2,7]],
 
-               :black => [[5,0], [5,2], [5,4], [5,6],
+               black: [[5,0], [5,2], [5,4], [5,6],
                       [6,1], [6,3], [6,5], [6,7],
                       [7,0], [7,2], [7,4], [7,6]]
 
@@ -24,12 +24,11 @@ class Board
   def initialize
     self.board = []
     8.times { board << Array.new(8) {Tile.new} }
-    self.red_piece_count = []
-    self.black_piece_count = []
     populate_board
   end
 
   def [](row, col)
+    # take splat arguments and handle for different cases
     self.board[row][col]
   end
 
@@ -51,6 +50,20 @@ class Board
 
     display = ["  1 2 3 4 5 6 7 8"] + display + ["__________________"]
     puts display
+  end
+
+  def piece_counter
+    self.black_piece_count = []
+    self.red_piece_count = []
+    @board.each do |row|
+      row.each do |tile|
+        if !tile.no_piece?
+          tile.piece.color == "red" ? red_piece_count << tile.piece : black_piece_count << tile.piece
+        end
+      end
+    end
+    puts "Yin Yangs left: #{black_piece_count.length}"
+    puts "Peaces left: #{red_piece_count.length}"
   end
 
 end

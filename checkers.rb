@@ -17,6 +17,8 @@ class Checkers
     set_players
   end
 
+  #SETTING PLAYER METHODS
+
   def set_players
     self.player1 = Player.new(:black)
     self.player2 = Player.new(:red)
@@ -27,6 +29,8 @@ class Checkers
     @current_player == player1 ? @current_player = player2 : @current_player = player1
   end
 
+  #GAME FLOW METHODS (PLAY, TURN, WIN, INPUT ERRORS...)
+
   def turn
     move_input = @current_player.get_inputs
     if !valid_piece?(@current_player.color, game_board[move_input[0][0], move_input[0][1]].piece)
@@ -35,30 +39,50 @@ class Checkers
     end
     kind_of_move(move_input)
     game_board.display_board
+    game_board.piece_counter
+    win
     change_players
   end
 
   def play
     game_board.display_board
-    20.times {turn}
+
+    until win
+      turn
+    end
+
+    play_again?
   end
 
-  def win?
+  def play_again?
+    puts "Play again? (y/n)"
+    ans = gets.chomp.downcase[0]
+    if ans == 'y'
+      self.game_board = Board.new
+      play
+    end
+  end
 
+  def win
+    false
+    if game_board.black_piece_count == 0
+      puts "\u262e Peaces WIN!! \u262e"
+      return true
+    elsif game_board.red_piece_count == 0
+      puts "\u262f YinYangs WIN!! \u262f"
+      return true
+    end
   end
 
   def origin_empty?(origin)
     game_board[origin[0], origin[1]].no_piece?
   end
 
-  def board_dup
-    serialized_board = Marshal::dump(game_board)
-    Marshal::load(serialized_board)
-  end
-
   def valid_piece?(current_player_color, selected_piece)
     selected_piece && (selected_piece.color == current_player_color)
   end
+
+  #PIECE MOVEMENT METHODS (WILL MOVE MOST TO PIECE CLASS)
 
   def kind_of_move(inputs)
     move(inputs) if inputs.length == 2
@@ -115,11 +139,11 @@ class Checkers
     difference = [destination[0] - origin[0], destination[1] - origin[1]]
     jumped = [origin[0] + (difference[0] / 2), origin[1] + (difference[1] / 2)]
     game_board[jumped[0], jumped[1]].piece = nil
+    # just delete from an array that contains all players pieces
   end
 
   def perform_move(origin, destination)
-    temp = game_board[origin[0], origin[1]].piece.dup
-    game_board[destination[0], destination[1]].piece = temp
+    game_board[destination[0], destination[1]].piece = game_board[origin[0], origin[1]].piece
     game_board[origin[0], origin[1]].piece = nil
     game_board[destination[0], destination[1]].piece.set_new_pos(destination)
     king_me(game_board[destination[0], destination[1]].piece)
@@ -138,21 +162,6 @@ class Checkers
 
     slide_moves = piece.slide_moves
     valid_moves += (slide_moves - surroundings) + (piece.jump_moves & possible_jumps)
-
-    puts "Current position is"
-    p current_position
-
-    puts "surroundings are:"
-    p surroundings
-
-    puts "jumps possible are"
-    p possible_jumps
-
-    puts "slide moves possible are"
-    p slide_moves
-
-    puts "valid_moves are"
-    p valid_moves
 
     valid_moves
   end
@@ -200,7 +209,7 @@ class Checkers
         game_board[current_position[0], current_position[1]].piece = King.new(color, current_position)
       end
     else
-      if black_line.include?(piece)
+      if black_line.include?(current_position)
         game_board[current_position[0], current_position[1]].piece = King.new(color, current_position)
       end
     end
