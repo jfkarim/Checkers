@@ -3,6 +3,7 @@ require_relative 'board'
 require_relative 'piece'
 require_relative 'tile'
 require_relative 'player'
+require_relative 'king'
 
 class Checkers
 
@@ -17,8 +18,8 @@ class Checkers
   end
 
   def set_players
-    self.player1 = Player.new('black')
-    self.player2 = Player.new('red')
+    self.player1 = Player.new(:black)
+    self.player2 = Player.new(:red)
     @current_player = player1
   end
 
@@ -34,7 +35,7 @@ class Checkers
 
   def play
     game_board.display_board
-    10.times {turn}
+    20.times {turn}
   end
 
 
@@ -87,6 +88,7 @@ class Checkers
     game_board[destination[0], destination[1]].piece = temp
     game_board[origin[0], origin[1]].piece = nil
     game_board[destination[0], destination[1]].piece.set_new_pos(destination)
+    king_me(game_board[destination[0], destination[1]].piece)
   end
 
   def valid_moves(piece)
@@ -126,11 +128,13 @@ class Checkers
 
     surroundings.each do |neighbor|
       difference = [neighbor[0] - current_position[0], neighbor[1] - current_position[1]]
-      jump_tile = [neighbor[0] + difference[0], neighbor[1] + difference[1]]
-      if game_board[jump_tile[0], jump_tile[1]] && game_board[jump_tile[0], jump_tile[1]].no_piece?
+      jump_pos = [neighbor[0] + difference[0], neighbor[1] + difference[1]]
+      jump_tile = game_board[jump_pos[0], jump_pos[1]]
+      next if !within_board?(jump_pos)
+      if game_board[jump_pos[0], jump_pos[1]] && game_board[jump_pos[0], jump_pos[1]].no_piece?
         if game_board[neighbor[0], neighbor[1]].piece.color != game_board[current_position[0], current_position[1]].piece.color
           if !game_board[neighbor[0], neighbor[1]].no_piece?
-            jump_array << jump_tile
+            jump_array << jump_pos if jump_tile.no_piece?
           end
         end
       end
@@ -145,6 +149,7 @@ class Checkers
 
     around.each do |new_pos|
       neighbor = [current_position[0] + new_pos[0], current_position[1] + new_pos[1]]
+      next if !within_board?(neighbor)
       tile = game_board[neighbor[0], neighbor[1]]
       surroundings << tile.piece.position if !tile.no_piece?
     end
@@ -152,6 +157,30 @@ class Checkers
     surroundings
   end
 
+  def king_me(piece)
+    current_position = piece.position
+    color = piece.color
+    red_line, black_line = back_line(0), back_line(7)
+    if color == :black
+      if red_line.include?(current_position)
+        game_board[current_position[0], current_position[1]] = King.new(color, current_position)
+      end
+    else
+      if black_line.include?(piece)
+        game_board[current_position[0], current_position[1]] = King.new(color, current_position)
+      end
+    end
+  end
+
+  def back_line(desired)
+    line = []
+    game_board.board.each { |row| row.each { |tile| line << tile.piece.position if tile.piece && tile.piece.position[0] == desired } }
+    line
+  end
+
+  def within_board?(pos)
+    (0...8).to_a.include?(pos[0]) && (0...8).to_a.include?(pos[1])
+  end
 
 end
 

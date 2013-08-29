@@ -33,7 +33,7 @@ class Player
       coord =~ /[A-H][1-8]/ ? move << grid_hash[coord] : get_inputs
     end
 
-#    get_inputs if move.length != 2
+    move = get_inputs if move.length != 2
 
     move
   end
