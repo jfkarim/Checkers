@@ -49,11 +49,10 @@ class Board
     puts display
   end
 
-
 end
 
-test = Board.new
-test.populate_board
-test.display_board
-
-p test
+# test = Board.new
+# test.populate_board
+# test.display_board
+#
+# p test

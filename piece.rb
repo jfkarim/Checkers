@@ -37,8 +37,8 @@ class Piece
     increments.each do |increment|
       row = position[0] + increment[0]
       col = position[1] + increment[1]
-      possible_moves = [row, col]
-      possible_moves << possible_moves if within_board?(possible_moves)
+      possible_move = [row, col]
+      possible_moves << possible_move if within_board?(possible_move)
     end
 
     possible_moves
