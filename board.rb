@@ -58,18 +58,12 @@ class Board
     @board.each do |row|
       row.each do |tile|
         if !tile.no_piece?
-          tile.piece.color == "red" ? red_piece_count << tile.piece : black_piece_count << tile.piece
+          tile.piece.color == :red ? red_piece_count << tile.piece : black_piece_count << tile.piece
         end
       end
     end
-    puts "Yin Yangs left: #{black_piece_count.length}"
-    puts "Peaces left: #{red_piece_count.length}"
+    puts "Yin Yangs left: #{self.black_piece_count.length}"
+    puts "Peaces left: #{self.red_piece_count.length}"
   end
 
 end
-
-# test = Board.new
-# test.populate_board
-# test.display_board
-#
-# p test
